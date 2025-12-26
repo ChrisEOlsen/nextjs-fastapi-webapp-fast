@@ -42,6 +42,11 @@ def append_to_file(file_path: str, content: str):
     if os.path.exists(full_path):
         with open(full_path, "a") as f:
             f.write(content)
+        # FIX: Ensure we can edit this file later if needed
+        try:
+            os.chmod(full_path, 0o666)
+        except Exception:
+            pass
 
 # --- Define Tools ---
 
@@ -77,7 +82,7 @@ def create_resource(resource_name: str, fields: List[FieldDefinition]):
         "backend/crud.py.j2": os.path.join(base_paths["backend"], f"crud/crud_{ctx['resource_name_snake']}.py"),
         "backend/endpoint.py.j2": os.path.join(base_paths["backend"], f"api/v1/endpoints/{ctx['resource_name_plural_snake']}.py"),
         "frontend/api_service.js.j2": os.path.join(base_paths["frontend"], f"services/api/{ctx['resource_name_plural_snake']}.js"),
-        "frontend/page.js.j2": os.path.join(base_paths["frontend"], f"app/{ctx['resource_name_plural_snake']}/page.js"),
+        "frontend/page.js.j2": os.path.join(base_paths["frontend"], f"pages/{ctx['resource_name_plural_snake']}.js"),
     }
 
     generated_list = []
@@ -87,13 +92,12 @@ def create_resource(resource_name: str, fields: List[FieldDefinition]):
         rendered_content = ""
         # Handle indentations for model and schema
         if "model.py.j2" in template_name:
-            # FIX 1: Indentation
+            # FIX 1: Indentation (remove leading spaces in f-string)
             field_lines = [f"{f.name} = Column({type_to_sqlalchemy(f.type)}, nullable={not f.required})" for f in fields]
             replacement = ("\n    ").join(field_lines)
             rendered_content = template.render(ctx).replace("# --- The MCP will add fields here ---", replacement)
             
-            # FIX 2: Ensure all SQLAlchemy types are imported so backend doesn't crash
-            # We replace the basic import line with one that includes everything
+            # FIX 2: Add missing imports (Boolean, Float, etc.) so backend doesn't crash
             rendered_content = rendered_content.replace(
                 "from sqlalchemy import Column, String, Integer, Text",
                 "from sqlalchemy import Column, String, Integer, Text, Boolean, Float, Date, DateTime, Uuid"
@@ -110,11 +114,12 @@ def create_resource(resource_name: str, fields: List[FieldDefinition]):
         with open(output_path, "w") as f:
             f.write(rendered_content)
         
-        # FIX 3: Fix permissions so you can edit/delete files on host
+        # FIX 3: Set permissions to Read/Write for Everyone (666)
+        # This allows your host user (and Gemini CLI) to edit/delete these files
         try:
             os.chmod(output_path, 0o666)
         except Exception:
-            pass # Ignore if fails
+            pass 
             
         generated_list.append(output_path)
 
@@ -142,7 +147,7 @@ def create_frontend_component(component_name: str, path: str, prompt: str):
     with open(output_path, "w") as f:
         f.write(rendered_content)
     
-    # Fix permissions
+    # FIX: Permissions
     try:
         os.chmod(output_path, 0o666)
     except Exception:

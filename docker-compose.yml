@@ -67,6 +67,7 @@ services:
       context: ./mcp
     image: my-mcp-server
     container_name: mcp
+    user: "${UID}:${GID}"
     volumes:
       - .:/workspace
       - /var/run/docker.sock:/var/run/docker.sock

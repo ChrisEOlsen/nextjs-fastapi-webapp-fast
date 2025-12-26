@@ -1,29 +1,13 @@
-// frontend/src/app/{{ resource_name_plural_snake }}/page.js
-'use client';
+// frontend/src/pages/{{ resource_name_plural_snake }}.js
+import React from 'react';
 
-import { useState } from 'react';
-import { fetch{{ resource_name_plural_pascal }} } from '@/services/api/{{ resource_name_plural_snake }}';
-
-export default function {{ resource_name_plural_pascal }}Page() {
-    const [{{ resource_name_plural_snake }}, set{{ resource_name_plural_pascal }}] = useState([]);
-    const [loading, setLoading] = useState(false);
-
-    const handleFetch = async () => {
-        setLoading(true);
-        const data = await fetch{{ resource_name_plural_pascal }}();
-        set{{ resource_name_plural_pascal }}(data);
-        setLoading(false);
-    };
-
+const {{ resource_name_plural_pascal }}Page = () => {
     return (
-        <div className="p-8">
-            <h1 className="text-4xl font-bold mb-4">Manage {{ resource_name_plural_pascal }}</h1>
-            <button onClick={handleFetch} disabled={loading} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                {loading ? 'Loading...' : 'Fetch {{ resource_name_plural_pascal }}'}
-            </button>
-            <pre className="bg-gray-800 p-4 rounded whitespace-pre-wrap mt-4">
-                {JSON.stringify({{ resource_name_plural_snake }}, null, 2)}
-            </pre>
+        <div>
+            <h1>{{ resource_name_plural_pascal }} Page</h1>
+            {/* The LLM should add the necessary code here. */}
         </div>
     );
-}
+};
+
+export default {{ resource_name_plural_pascal }}Page;
