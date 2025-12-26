@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: fastapi-backend
+Version: 0.1.0
+Summary: FastAPI backend for vite-js-fastapi-webapp
+Requires-Python: >=3.10
+Requires-Dist: fastapi
+Requires-Dist: uvicorn[standard]
+Requires-Dist: sqlalchemy
+Requires-Dist: asyncpg
+Requires-Dist: passlib[bcrypt]
+Requires-Dist: alembic

@@ -1,0 +1,19 @@
+[project]
+name = "fastapi-backend"
+version = "0.1.0"
+description = "FastAPI backend for vite-js-fastapi-webapp"
+dependencies = [
+    "fastapi[standard]",
+    "uvicorn[standard]",
+    "sqlalchemy",
+    "aiosqlite",
+    "passlib[bcrypt]",
+    "alembic",
+    "pydantic-settings",
+    "cryptography"
+]
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

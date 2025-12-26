@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16.2
+    networks:
+      - proxy 
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${APP_NAME}
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data 
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    volumes:
+      - ./backend:/code
+    env_file:
+      - ./.env
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.${APP_NAME}-backend-secure.entrypoints=websecure"
+      - "traefik.http.routers.${APP_NAME}-backend-secure.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.${APP_NAME}-backend-secure.tls=true"
+      - "traefik.http.routers.${APP_NAME}-backend-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.${APP_NAME}-backend-secure.service=${APP_NAME}-backend-service"
+      - "traefik.http.services.${APP_NAME}-backend-service.loadbalancer.server.port=80"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
+    env_file:
+      - ./.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      # Redirect HTTP → HTTPS
+      - "traefik.http.routers.${APP_NAME}.entrypoints=web"
+      - "traefik.http.routers.${APP_NAME}.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.${APP_NAME}.middlewares=redirect-to-https"
+      # HTTPS Router – Authentik + secure headers
+      - "traefik.http.routers.${APP_NAME}-secure.entrypoints=websecure"
+      - "traefik.http.routers.${APP_NAME}-secure.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.${APP_NAME}-secure.tls=true"
+      - "traefik.http.routers.${APP_NAME}-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.${APP_NAME}-secure.middlewares=authentik@docker,secure-headers@docker"
+      - "traefik.http.routers.${APP_NAME}-secure.service=${APP_NAME}-service"
+      # Internal service port
+      - "traefik.http.services.${APP_NAME}-service.loadbalancer.server.port=5173"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true 
