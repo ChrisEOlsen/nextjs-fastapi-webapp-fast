@@ -97,3 +97,25 @@
 2025-12-26 03:46:36,941 - backend - INFO - Creating database tables if they don't exist...
 2025-12-26 03:46:36,950 - backend - INFO - Database tables checked/created successfully.
 2025-12-26 03:46:36,950 - backend - INFO - 🏁 App startup complete, ready to accept requests.
+2025-12-26 04:16:36,266 - backend - INFO - 🛑 App shutdown complete.
+2025-12-26 04:17:18,602 - backend - INFO - 🚀 Starting application...
+2025-12-26 04:17:18,602 - backend - WARNING - Fetched 'database_url' from environment variable. For production, use secrets_loader.
+2025-12-26 04:17:18,602 - backend - INFO - Creating new SQLAlchemy async engine.
+2025-12-26 04:17:18,798 - backend - INFO - Creating database tables if they don't exist...
+2025-12-26 04:17:18,803 - backend - INFO - Database tables checked/created successfully.
+2025-12-26 04:17:18,803 - backend - INFO - 🏁 App startup complete, ready to accept requests.
+2025-12-26 04:18:35,718 - backend - INFO - 🛑 App shutdown complete.
+2025-12-26 04:20:14,027 - backend - INFO - 🚀 Starting application...
+2025-12-26 04:20:14,027 - backend - WARNING - Fetched 'database_url' from environment variable. For production, use secrets_loader.
+2025-12-26 04:20:14,027 - backend - INFO - Creating new SQLAlchemy async engine.
+2025-12-26 04:20:14,273 - backend - INFO - Creating database tables if they don't exist...
+2025-12-26 04:20:14,283 - backend - INFO - Database tables checked/created successfully.
+2025-12-26 04:20:14,283 - backend - INFO - 🏁 App startup complete, ready to accept requests.
+2025-12-26 04:27:47,842 - backend - INFO - 🛑 App shutdown complete.
+2025-12-26 04:28:13,745 - backend - INFO - 🚀 Starting application...
+2025-12-26 04:28:13,745 - backend - WARNING - Fetched 'database_url' from environment variable. For production, use secrets_loader.
+2025-12-26 04:28:13,745 - backend - INFO - Creating new SQLAlchemy async engine.
+2025-12-26 04:28:13,926 - backend - INFO - Creating database tables if they don't exist...
+2025-12-26 04:28:13,930 - backend - INFO - Database tables checked/created successfully.
+2025-12-26 04:28:13,930 - backend - INFO - 🏁 App startup complete, ready to accept requests.
+2025-12-26 04:29:01,754 - backend - INFO - 🛑 App shutdown complete.

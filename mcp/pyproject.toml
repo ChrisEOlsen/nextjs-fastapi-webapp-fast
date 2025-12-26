@@ -6,7 +6,9 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "Jinja2",
-    "python-multipart"
+    "python-multipart",
+    "mcp",
+    "docker"
 ]
 requires-python = ">=3.10"
 

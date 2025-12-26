@@ -23,7 +23,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.${APP_NAME}-backend-service.loadbalancer.server.port=80"
-      # Router for API calls - directs traffic to the backend service
       - "traefik.http.routers.${APP_NAME}-backend-secure.entrypoints=websecure"
       - "traefik.http.routers.${APP_NAME}-backend-secure.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.${APP_NAME}-backend-secure.priority=100"
@@ -44,17 +43,14 @@ services:
     env_file:
       - ./.env
     environment:
-      # these help Next's watcher pick up changes inside Docker
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      # Redirect HTTP → HTTPS
       - "traefik.http.routers.${APP_NAME}.entrypoints=web"
       - "traefik.http.routers.${APP_NAME}.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.${APP_NAME}.middlewares=redirect-to-https"
-      # HTTPS Router – Authentik + secure headers
       - "traefik.http.routers.${APP_NAME}-secure.entrypoints=websecure"
       - "traefik.http.routers.${APP_NAME}-secure.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.${APP_NAME}-secure.priority=50"
@@ -62,21 +58,21 @@ services:
       - "traefik.http.routers.${APP_NAME}-secure.tls.certresolver=cloudflare"
       - "traefik.http.routers.${APP_NAME}-secure.middlewares=authentik@docker,secure-headers@docker"
       - "traefik.http.routers.${APP_NAME}-secure.service=${APP_NAME}-service"
-      # Internal service port
       - "traefik.http.services.${APP_NAME}-service.loadbalancer.server.port=3000"
-
     networks:
       - proxy
 
   mcp:
     build:
       context: ./mcp
+    image: my-mcp-server
     container_name: mcp
     volumes:
       - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - proxy
 
 networks:
   proxy:
-    external: true 
+    external: true
