@@ -1,0 +1,21 @@
+# backend/app/db/schemas/{{ resource_name_snake }}.py
+from pydantic import BaseModel
+from typing import Optional
+
+class {{ resource_name_pascal }}Base(BaseModel):
+    # --- The MCP will add fields here ---
+    pass
+
+class {{ resource_name_pascal }}Create({{ resource_name_pascal }}Base):
+    pass
+
+class {{ resource_name_pascal }}Update({{ resource_name_pascal }}Base):
+    pass
+
+class {{ resource_name_pascal }}InDBBase({{ resource_name_pascal }}Base):
+    id: int
+    class Config:
+        from_attributes = True
+
+class {{ resource_name_pascal }}({{ resource_name_pascal }}InDBBase):
+    pass

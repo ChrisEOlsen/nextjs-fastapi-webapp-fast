@@ -1,0 +1,8 @@
+# backend/app/models/{{ resource_name_snake }}.py
+from sqlalchemy import Column, String, Integer, Text
+from .user import Base
+
+class {{ resource_name_pascal }}(Base):
+    __tablename__ = "{{ resource_name_plural_snake }}"
+    id = Column(Integer, primary_key=True, index=True)
+    # --- The MCP will add fields here ---

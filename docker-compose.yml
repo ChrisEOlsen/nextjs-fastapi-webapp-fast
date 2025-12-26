@@ -68,6 +68,15 @@ services:
     networks:
       - proxy
 
+  mcp:
+    build:
+      context: ./mcp
+    container_name: mcp
+    volumes:
+      - .:/workspace
+    networks:
+      - proxy
+
 networks:
   proxy:
     external: true 

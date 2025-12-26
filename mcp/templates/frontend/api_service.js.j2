@@ -1,0 +1,13 @@
+// frontend/src/services/api/{{ resource_name_plural_snake }}.js
+export const fetch{{ resource_name_plural_pascal }} = async () => {
+    try {
+        const response = await fetch(`/api/v1/{{ resource_name_plural_snake }}/`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Failed to fetch {{ resource_name_plural_snake }}:", error);
+        return [];
+    }
+};

@@ -1,0 +1,34 @@
+# backend/app/api/v1/endpoints/{{ resource_name_plural_snake }}.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
+
+from app.crud.crud_{{ resource_name_snake }} import {{ resource_name_snake }} as crud_{{ resource_name_snake }}
+from app.db import connections
+from app.db.schemas.{{ resource_name_snake }} import {{ resource_name_pascal }}, {{ resource_name_pascal }}Create, {{ resource_name_pascal }}Update
+
+router = APIRouter()
+
+@router.post("/", response_model={{ resource_name_pascal }})
+async def create_{{ resource_name_snake }}(
+    *,
+    db: AsyncSession = Depends(connections.get_db),
+    {{ resource_name_snake }}_in: {{ resource_name_pascal }}Create,
+):
+    """
+    Create new {{ resource_name_snake }}.
+    """
+    {{ resource_name_snake }} = await crud_{{ resource_name_snake }}.create(db, obj_in={{ resource_name_snake }}_in)
+    return {{ resource_name_snake }}
+
+@router.get("/", response_model=List[{{ resource_name_pascal }}])
+async def read_{{ resource_name_plural_snake }}(
+    db: AsyncSession = Depends(connections.get_db),
+    skip: int = 0,
+    limit: int = 100,
+):
+    """
+    Retrieve {{ resource_name_plural_snake }}.
+    """
+    {{ resource_name_plural_snake }} = await crud_{{ resource_name_snake }}.get_multi(db, skip=skip, limit=limit)
+    return {{ resource_name_plural_snake }}

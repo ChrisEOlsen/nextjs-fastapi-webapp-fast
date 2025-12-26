@@ -90,3 +90,10 @@
 2025-12-26 03:10:37,547 - backend - INFO - Creating database tables if they don't exist...
 2025-12-26 03:10:37,551 - backend - INFO - Database tables checked/created successfully.
 2025-12-26 03:10:37,552 - backend - INFO - 🏁 App startup complete, ready to accept requests.
+2025-12-26 03:45:20,494 - backend - INFO - 🛑 App shutdown complete.
+2025-12-26 03:46:36,761 - backend - INFO - 🚀 Starting application...
+2025-12-26 03:46:36,762 - backend - WARNING - Fetched 'database_url' from environment variable. For production, use secrets_loader.
+2025-12-26 03:46:36,762 - backend - INFO - Creating new SQLAlchemy async engine.
+2025-12-26 03:46:36,941 - backend - INFO - Creating database tables if they don't exist...
+2025-12-26 03:46:36,950 - backend - INFO - Database tables checked/created successfully.
+2025-12-26 03:46:36,950 - backend - INFO - 🏁 App startup complete, ready to accept requests.

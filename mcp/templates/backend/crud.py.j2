@@ -1,0 +1,9 @@
+# backend/app/crud/crud_{{ resource_name_snake }}.py
+from app.db.base import CRUDBase
+from app.models.{{ resource_name_snake }} import {{ resource_name_pascal }}
+from app.db.schemas.{{ resource_name_snake }} import {{ resource_name_pascal }}Create, {{ resource_name_pascal }}Update
+
+class CRUD{{ resource_name_pascal }}(CRUDBase[{{ resource_name_pascal }}, {{ resource_name_pascal }}Create, {{ resource_name_pascal }}Update]):
+    pass
+
+{{ resource_name_snake }} = CRUD{{ resource_name_pascal }}({{ resource_name_pascal }})
