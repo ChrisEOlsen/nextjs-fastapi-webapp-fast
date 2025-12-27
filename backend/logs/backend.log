@@ -361,3 +361,10 @@
 2025-12-27 02:17:49,295 - backend - INFO - 🏁 App startup complete, ready to accept requests.
 2025-12-27 02:22:17,963 - backend - INFO - HMAC Validation: Domain='template.crispychrisprivserver.org', Expected Secret (first 5 chars)='04831', Generated Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0', Received Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0'
 2025-12-27 02:22:19,501 - backend - INFO - HMAC Validation: Domain='template.crispychrisprivserver.org', Expected Secret (first 5 chars)='04831', Generated Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0', Received Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0'
+2025-12-27 02:25:11,263 - backend - INFO - 🚀 Starting application...
+2025-12-27 02:25:11,263 - backend - WARNING - Fetched 'database_url' from environment variable. For production, use secrets_loader.
+2025-12-27 02:25:11,263 - backend - INFO - Creating new SQLAlchemy async engine.
+2025-12-27 02:25:11,405 - backend - INFO - Creating database tables if they don't exist...
+2025-12-27 02:25:11,410 - backend - INFO - Database tables checked/created successfully.
+2025-12-27 02:25:11,410 - backend - INFO - 🏁 App startup complete, ready to accept requests.
+2025-12-27 02:27:38,045 - backend - INFO - 🛑 App shutdown complete.
