@@ -7,10 +7,10 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# Import your models here
+# Import your models here for 'autogenerate' support
 from app.models.user import Base
-from app.models.todo_item import TodoItem
-
+from app.models.todo_item import Base as TodoItemBase # This ensures todo_item is registered
+# --- Add any other models you create here ---
 
 load_dotenv()
 
@@ -18,22 +18,19 @@ load_dotenv()
 # access to the values within the .ini file in use.
 config = context.config
 
+# Construct the database URL from environment variables
 db_user = os.getenv("DB_USER")
 db_password = os.getenv("DB_PASSWORD")
 app_name = os.getenv("APP_NAME")
 db_url = f"postgresql://{db_user}:{db_password}@postgres/{app_name}"
 config.set_main_option("sqlalchemy.url", db_url)
 
-
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+# Set the target metadata for 'autogenerate' support
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

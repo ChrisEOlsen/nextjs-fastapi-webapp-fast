@@ -37,13 +37,6 @@ def type_to_pydantic(field_type: str) -> str:
     }
     return mapping.get(field_type, "str")
 
-def append_to_file(file_path: str, content: str):
-    full_path = os.path.join(WORKSPACE_DIR, file_path)
-    if os.path.exists(full_path):
-        with open(full_path, "a") as f:
-            f.write(content)
-        # Permissions are now handled by Docker user configuration, no need for os.chmod here.
-
 # --- Define Tools ---
 
 class FieldDefinition(BaseModel):
@@ -84,35 +77,25 @@ def create_resource(resource_name: str, fields: List[FieldDefinition], is_admin_
     
     generated_list = []
 
-    # Generate frontend API handler directory
+    # --- Generate Frontend API Handlers ---
     frontend_api_dir = os.path.join(base_paths["frontend"], f"pages/api/{ctx['resource_name_plural_snake']}")
     os.makedirs(frontend_api_dir, exist_ok=True)
 
-    auth_import = "import { isAdmin, isAuthenticated } from \"@/lib/auth\";\n\n" if is_admin_resource else "import { isAuthenticated } from \"@/lib/auth\";\n\n"
-    auth_check_admin = f"""
+    # Corrected Auth Logic: Only add auth for admin resources.
+    auth_import = "import { isAdmin } from \"@/lib/auth\";\n" if is_admin_resource else ""
+    auth_check_block = f"""
     if (!await isAdmin(req)) {{
         return res.status(403).json({{ error: \"Forbidden: Admin access required.\" }});
     }}
-
 """ if is_admin_resource else ""
 
-    auth_check_user = f"""
-    if (!await isAuthenticated(req)) {{
-        return res.status(401).json({{ error: \"Unauthorized: Login required.\" }});
-    }}
-
-""" if not is_admin_resource else ""
-
-    # Generate index.js for GET all and POST create
+    # --- Generate index.js ---
     frontend_index_handler_path = os.path.join(frontend_api_dir, "index.js")
     frontend_index_handler_content = f"""
 // frontend/src/pages/api/{ctx['resource_name_plural_snake']}/index.js
 import {{ signedFetch }} from "@/lib/signedFetch";
-{auth_import}
-export default async function handler(req, res) {{
-{auth_check_admin}
-{auth_check_user}
-  if (req.method === 'GET') {{
+{auth_import}export default async function handler(req, res) {{
+{auth_check_block}  if (req.method === 'GET') {{
     return handleGet(req, res);
   }}
 
@@ -126,7 +109,7 @@ export default async function handler(req, res) {{
 
 async function handleGet(req, res) {{
   try {{
-    const backendResponse = await signedFetch("/{ctx['resource_name_plural_snake']}");
+    const backendResponse = await signedFetch("/{ctx['resource_name_plural_snake']}", req);
     const data = await backendResponse.json();
     if (!backendResponse.ok) {{
       return res.status(backendResponse.status).json({{ error: data.detail || 'Failed to fetch {ctx['resource_name_plural_snake']} data' }});
@@ -140,7 +123,7 @@ async function handleGet(req, res) {{
 
 async function handlePost(req, res) {{
   try {{
-    const backendResponse = await signedFetch("/{ctx['resource_name_plural_snake']}", {{
+    const backendResponse = await signedFetch("/{ctx['resource_name_plural_snake']}", req, {{
       method: 'POST',
       body: JSON.stringify(req.body),
     }});
@@ -157,19 +140,15 @@ async function handlePost(req, res) {{
 """
     with open(frontend_index_handler_path, "w") as f:
         f.write(frontend_index_handler_content)
-    # Removed os.chmod for permissions as it's handled by Docker user configuration.
     generated_list.append(frontend_index_handler_path)
 
-    # Generate [id].js for GET by ID, PUT update, DELETE
+    # --- Generate [id].js ---
     frontend_id_handler_path = os.path.join(frontend_api_dir, f"[{ctx['resource_name_snake']}Id].js")
     frontend_id_handler_content = f"""
 // frontend/src/pages/api/{ctx['resource_name_plural_snake']}/[{ctx['resource_name_snake']}Id].js
 import {{ signedFetch }} from "@/lib/signedFetch";
-{auth_import}
-export default async function handler(req, res) {{
-{auth_check_admin}
-{auth_check_user}
-  const {{ {ctx['resource_name_snake']}Id }} = req.query;
+{auth_import}export default async function handler(req, res) {{
+{auth_check_block}  const {{ {ctx['resource_name_snake']}Id }} = req.query;
 
   if (req.method === 'GET') {{
     return handleGet(req, res, {ctx['resource_name_snake']}Id);
@@ -189,25 +168,21 @@ export default async function handler(req, res) {{
 
 async function handleGet(req, res, {ctx['resource_name_snake']}Id) {{
   try {{
-    const backendResponse = await signedFetch(f"/{ctx['resource_name_plural_snake']}/${{
-      {ctx['resource_name_snake']}Id
-    }}");
+    const backendResponse = await signedFetch(`/{ctx['resource_name_plural_snake']}/${{ {ctx['resource_name_snake']}Id }}`, req);
     const data = await backendResponse.json();
     if (!backendResponse.ok) {{
       return res.status(backendResponse.status).json({{ error: data.detail || 'Failed to fetch {ctx['resource_name_snake']}' }});
     }}
     return res.status(200).json(data);
   }} catch (err) {{
-    console.error(f"Error fetching {ctx['resource_name_snake']} {{ {ctx['resource_name_snake']}Id }}:", err);
+    console.error(`Error fetching {ctx['resource_name_snake']} ${{ {ctx['resource_name_snake']}Id }}:`, err);
     return res.status(500).json({{ error: "Internal Server Error" }});
   }}
 }}
 
 async function handlePut(req, res, {ctx['resource_name_snake']}Id) {{
   try {{
-    const backendResponse = await signedFetch(f"/{ctx['resource_name_plural_snake']}/${{
-      {ctx['resource_name_snake']}Id
-    }}", {{
+    const backendResponse = await signedFetch(`/{ctx['resource_name_plural_snake']}/${{ {ctx['resource_name_snake']}Id }}`, req, {{
       method: 'PUT',
       body: JSON.stringify(req.body),
     }});
@@ -217,16 +192,14 @@ async function handlePut(req, res, {ctx['resource_name_snake']}Id) {{
     }}
     return res.status(200).json(data);
   }} catch (err) {{
-    console.error(f"Error updating {ctx['resource_name_snake']} {{ {ctx['resource_name_snake']}Id }}:", err);
+    console.error(`Error updating {ctx['resource_name_snake']} ${{ {ctx['resource_name_snake']}Id }}:`, err);
     return res.status(500).json({{ error: "Internal Server Error" }});
   }}
 }}
 
 async function handleDelete(req, res, {ctx['resource_name_snake']}Id) {{
   try {{
-    const backendResponse = await signedFetch(f"/{ctx['resource_name_plural_snake']}/${{
-      {ctx['resource_name_snake']}Id
-    }}", {{
+    const backendResponse = await signedFetch(`/{ctx['resource_name_plural_snake']}/${{ {ctx['resource_name_snake']}Id }}`, req, {{
       method: 'DELETE',
     }});
     if (!backendResponse.ok) {{
@@ -235,14 +208,13 @@ async function handleDelete(req, res, {ctx['resource_name_snake']}Id) {{
     }}
     return res.status(204).end();
   }} catch (err) {{
-    console.error(f"Error deleting {ctx['resource_name_snake']} {{ {ctx['resource_name_snake']}Id }}:", err);
+    console.error(`Error deleting {ctx['resource_name_snake']} ${{ {ctx['resource_name_snake']}Id }}:`, err);
     return res.status(500).json({{ error: "Internal Server Error" }});
   }}
 }}
 """
     with open(frontend_id_handler_path, "w") as f:
         f.write(frontend_id_handler_content)
-    # Removed os.chmod for permissions as it's handled by Docker user configuration.
     generated_list.append(frontend_id_handler_path)
 
     
@@ -250,19 +222,14 @@ async function handleDelete(req, res, {ctx['resource_name_snake']}Id) {{
         template = templates_env.get_template(template_name)
         
         rendered_content = ""
-        # Handle indentations for model and schema
         if "model.py.j2" in template_name:
-            # FIX 1: Indentation (remove leading spaces in f-string)
             field_lines = [f"{f.name} = Column({type_to_sqlalchemy(f.type)}, nullable={not f.required})" for f in fields]
             replacement = ("\n    ").join(field_lines)
             rendered_content = template.render(ctx).replace("# --- The MCP will add fields here ---", replacement)
-            
-            # FIX 2: Add missing imports (Boolean, Float, etc.) so backend doesn't crash
             rendered_content = rendered_content.replace(
                 "from sqlalchemy import Column, String, Integer, Text",
                 "from sqlalchemy import Column, String, Integer, Text, Boolean, Float, Date, DateTime, Uuid"
             )
-
         elif "schema.py.j2" in template_name:
             field_lines = [f"{f.name}: {type_to_pydantic(f.type)}{' | None' if not f.required else ''}" for f in fields]
             replacement = ("\n    ").join(field_lines)
@@ -273,13 +240,31 @@ async function handleDelete(req, res, {ctx['resource_name_snake']}Id) {{
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         with open(output_path, "w") as f:
             f.write(rendered_content)
-        
-        # Removed os.chmod for permissions as it's handled by Docker user configuration.
         generated_list.append(output_path)
 
-    # Modify existing files
-    append_to_file("backend/app/models/__init__.py", f"\nfrom .{ctx['resource_name_snake']} import {ctx['resource_name_pascal']}")
-    append_to_file("backend/app/api/v1/routers.py", f"\napi_router.include_router({ctx['resource_name_plural_snake']}.router, prefix='/{ctx['resource_name_plural_snake']}', tags=['{ctx['resource_name_pascal']}'])")
+    # --- Modify routers.py ---
+    routers_file_path = os.path.join(base_paths["backend"], "api/v1/routers.py")
+    with open(routers_file_path, "r") as f:
+        routers_content = f.read()
+    new_import = f"from app.api.v1.endpoints import {ctx['resource_name_plural_snake']}"
+    new_router_line = f"api_router.include_router({ctx['resource_name_plural_snake']}.router, tags=['{ctx['resource_name_pascal']}'])"
+    if new_import not in routers_content:
+        lines = routers_content.splitlines()
+        last_import_index = -1
+        for i, line in enumerate(lines):
+            if line.startswith("from") or line.startswith("import"):
+                last_import_index = i
+        lines.insert(last_import_index + 1, new_import)
+        routers_content = "\n".join(lines)
+    if new_router_line not in routers_content:
+        routers_content += f"\n{new_router_line}"
+    with open(routers_file_path, "w") as f:
+        f.write(routers_content)
+    
+    # --- Modify models/__init__.py ---
+    models_init_path = os.path.join(base_paths["backend"], "models/__init__.py")
+    with open(models_init_path, "a") as f:
+        f.write(f"\nfrom .{ctx['resource_name_snake']} import {to_pascal_case(ctx['resource_name_snake'])}")
 
     return f"Created resource {resource_name}. Generated files: {generated_list}"
 
@@ -327,9 +312,7 @@ def add_middleware_route(route_path: str, route_type: Literal["auth_required", "
     with open(middleware_file_path, "w") as f:
         f.write(updated_content)
     
-    # Permissions are now handled by Docker user configuration.
-
-    return f"Added route \'{route_path}\' to {target_array_name} in frontend/src/middleware.js"
+    return f"Added route '{route_path}' to {target_array_name} in frontend/src/middleware.js"
 
 
 @mcp.tool()
@@ -350,8 +333,6 @@ def create_frontend_component(component_name: str, path: str, prompt: str):
     with open(output_path, "w") as f:
         f.write(rendered_content)
     
-    # Permissions are now handled by Docker user configuration.
-
     return f"Component {component_name} created at {output_path}"
 
 @mcp.tool()

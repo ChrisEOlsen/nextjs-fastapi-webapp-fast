@@ -18,8 +18,5 @@ async def is_valid_hmac_signature(domain: str, signature: str) -> bool:
     # Calculate the HMAC signature
     hmac_calculator = hmac.new(key, message, hashlib.sha256)
     generated_signature = hmac_calculator.hexdigest()
-
-    logger.info(f"HMAC Validation: Domain='{domain}', Expected Secret (first 5 chars)='{expected_secret[:5]}', Generated Sig='{generated_signature}', Received Sig='{signature}'")
-
     # Compare the generated signature with the received signature
     return hmac.compare_digest(generated_signature, signature)

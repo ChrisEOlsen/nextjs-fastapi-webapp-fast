@@ -9,11 +9,13 @@ RUN uv pip compile pyproject.toml -o requirements.txt
 RUN uv pip install --system --no-cache -r requirements.txt
 
 # Create a non-root user with the same UID and GID as the host
-# This avoids permission issues with mounted volumes.
+# Also, add the user to the docker group to allow socket access
 ARG UID=1000
 ARG GID=1000
+ARG DOCKER_GID=984
 RUN groupadd --gid $GID user && \
-    useradd --uid $UID --gid $GID -m user
+    groupadd --gid $DOCKER_GID docker && \
+    useradd --uid $UID --gid $GID --groups docker -m user
 
 # Now, copy the application code and set permissions
 COPY --chown=user:user ./app /app/app
