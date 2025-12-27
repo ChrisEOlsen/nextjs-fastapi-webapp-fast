@@ -1,75 +1,61 @@
-# backend/app/api/v1/endpoints/{{ resource_name_plural_snake }}.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from app.crud.crud_{{ resource_name_snake }} import {{ resource_name_snake }} as crud_{{ resource_name_snake }}
-from app.db import connections
+from app.crud.crud_{{ resource_name_snake }} import crud_{{ resource_name_snake }}
 from app.db.schemas.{{ resource_name_snake }} import {{ resource_name_pascal }}, {{ resource_name_pascal }}Create, {{ resource_name_pascal }}Update
+from app.db.connections import get_db
 
-router = APIRouter(tags=["{{ resource_name_plural_pascal }}"], redirect_slashes=False)
-
-@router.post("/{{ resource_name_plural_snake }}/", response_model={{ resource_name_pascal }})
-async def create_{{ resource_name_snake }}(
-    *,
-    db: AsyncSession = Depends(connections.get_db),
-    {{ resource_name_snake }}_in: {{ resource_name_pascal }}Create,
-):
-    """
-    Create new {{ resource_name_snake }}.
-    """
-    {{ resource_name_snake }} = await crud_{{ resource_name_snake }}.create(db, obj_in={{ resource_name_snake }}_in)
-    return {{ resource_name_snake }}
+router = APIRouter()
 
 @router.get("/{{ resource_name_plural_snake }}/", response_model=List[{{ resource_name_pascal }}])
 async def read_{{ resource_name_plural_snake }}(
-    db: AsyncSession = Depends(connections.get_db),
-    skip: int = 0,
-    limit: int = 100,
+    db: AsyncSession = Depends(get_db), skip: int = 0, limit: int = 100
 ):
     """
     Retrieve {{ resource_name_plural_snake }}.
     """
-    {{ resource_name_plural_snake }} = await crud_{{ resource_name_snake }}.get_multi(db, skip=skip, limit=limit)
-    return {{ resource_name_plural_snake }}
+    items = await crud_{{ resource_name_snake }}.get_multi(db, skip=skip, limit=limit)
+    return items
 
-@router.get("/{{ resource_name_plural_snake }}/{id}", response_model={{ resource_name_pascal }})
-async def read_{{ resource_name_snake }}_by_id(
-    id: int,
-    db: AsyncSession = Depends(connections.get_db),
+@router.post("/{{ resource_name_plural_snake }}/", response_model={{ resource_name_pascal }})
+async def create_{{ resource_name_snake }}(
+    *,
+    db: AsyncSession = Depends(get_db),
+    item_in: {{ resource_name_pascal }}Create,
 ):
     """
-    Retrieve a single {{ resource_name_snake }} by ID.
+    Create new {{ resource_name_snake }}.
     """
-    {{ resource_name_snake }} = await crud_{{ resource_name_snake }}.get(db, id=id)
-    if not {{ resource_name_snake }}:
-        raise HTTPException(status_code=404, detail="{{ resource_name_pascal }} not found")
-    return {{ resource_name_snake }}
+    item = await crud_{{ resource_name_snake }}.create(db=db, obj_in=item_in)
+    return item
 
-@router.put("/{{ resource_name_plural_snake }}/{id}", response_model={{ resource_name_pascal }})
+@router.put("/{{ resource_name_plural_snake }}/{item_id}", response_model={{ resource_name_pascal }})
 async def update_{{ resource_name_snake }}(
-    id: int,
-    {{ resource_name_snake }}_in: {{ resource_name_pascal }}Update,
-    db: AsyncSession = Depends(connections.get_db),
+    *,
+    db: AsyncSession = Depends(get_db),
+    item_id: int,
+    item_in: {{ resource_name_pascal }}Update,
 ):
     """
-    Update a {{ resource_name_snake }} by ID.
+    Update a {{ resource_name_snake }}.
     """
-    {{ resource_name_snake }} = await crud_{{ resource_name_snake }}.get(db, id=id)
-    if not {{ resource_name_snake }}:
+    item = await crud_{{ resource_name_snake }}.get(db=db, id=item_id)
+    if not item:
         raise HTTPException(status_code=404, detail="{{ resource_name_pascal }} not found")
-    {{ resource_name_snake }} = await crud_{{ resource_name_snake }}.update(db, db_obj={{ resource_name_snake }}, obj_in={{ resource_name_snake }}_in)
-    return {{ resource_name_snake }}
+    item = await crud_{{ resource_name_snake }}.update(db=db, db_obj=item, obj_in=item_in)
+    return item
 
-@router.delete("/{{ resource_name_plural_snake }}/{id}", response_model={{ resource_name_pascal }})
+@router.delete("/{{ resource_name_plural_snake }}/{item_id}", response_model={{ resource_name_pascal }})
 async def delete_{{ resource_name_snake }}(
-    id: int,
-    db: AsyncSession = Depends(connections.get_db),
+    *,
+    db: AsyncSession = Depends(get_db),
+    item_id: int,
 ):
     """
-    Delete a {{ resource_name_snake }} by ID.
+    Delete a {{ resource_name_snake }}.
     """
-    {{ resource_name_snake }} = await crud_{{ resource_name_snake }}.delete(db, id=id)
-    if not {{ resource_name_snake }}:
+    item = await crud_{{ resource_name_snake }}.delete(db=db, id=item_id)
+    if not item:
         raise HTTPException(status_code=404, detail="{{ resource_name_pascal }} not found")
-    return {{ resource_name_snake }}
+    return item

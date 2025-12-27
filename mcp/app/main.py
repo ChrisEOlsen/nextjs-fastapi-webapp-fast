@@ -66,8 +66,7 @@ class Field:
 @app.command("create-resource")
 def create_resource(
     resource_name: Annotated[str, typer.Argument(help="The singular snake_case name of the resource (e.g., 'product_item').")],
-    fields: Annotated[List[str], typer.Argument(help="List of field definitions in 'name:type:required' format (e.g., 'title:string:true' 'content:text:false').")],
-    is_admin_resource: Annotated[bool, typer.Option(help="If true, generated frontend API handlers will include admin auth checks.")] = False
+    fields: Annotated[List[str], typer.Argument(help="List of field definitions in 'name:type:required' format (e.g., 'title:string:true' 'content:text:false').")]
 ):
     """
     Scaffolds a new resource: backend models, schemas, CRUD, endpoints, and frontend API handlers.
@@ -82,7 +81,6 @@ def create_resource(
         "resource_name_plural_snake": to_plural(resource_name),
         "resource_name_plural_pascal": to_pascal_case(to_plural(resource_name)),
         "fields": parsed_fields,
-        "is_admin_resource": is_admin_resource,
         "type_to_sqlalchemy": type_to_sqlalchemy,
         "type_to_pydantic": type_to_pydantic
     }

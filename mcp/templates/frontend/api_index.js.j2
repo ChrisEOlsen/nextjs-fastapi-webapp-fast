@@ -1,15 +1,7 @@
-
 // frontend/src/pages/api/{{ resource_name_plural_snake }}/index.js
 import { signedFetch } from "@/lib/signedFetch";
-{% if is_admin_resource %}import { isAdmin } from "@/lib/auth";{% endif %}
 
 export default async function handler(req, res) {
-  {% if is_admin_resource %}
-  if (!await isAdmin(req)) {
-      return res.status(403).json({ error: "Forbidden: Admin access required." });
-  }
-  {% endif %}
-
   if (req.method === 'GET') {
     return handleGet(req, res);
   }
@@ -24,10 +16,10 @@ export default async function handler(req, res) {
 
 async function handleGet(req, res) {
   try {
-    const backendResponse = await signedFetch("/{{ resource_name_plural_snake }}", req);
+    const backendResponse = await signedFetch("/{{ resource_name_plural_snake }}/", req);
     const data = await backendResponse.json();
     if (!backendResponse.ok) {
-      return res.status(backendResponse.status).json({ error: data.detail || 'Failed to fetch {{ resource_name_plural_snake }} data' });
+      return res.status(backendResponse.status).json({ error: data.detail || 'Failed to fetch {{ resource_name_plural_snake }}' });
     }
     return res.status(200).json(data);
   } catch (err) {
@@ -38,7 +30,7 @@ async function handleGet(req, res) {
 
 async function handlePost(req, res) {
   try {
-    const backendResponse = await signedFetch("/{{ resource_name_plural_snake }}", req, {
+    const backendResponse = await signedFetch("/{{ resource_name_plural_snake }}/", req, {
       method: 'POST',
       body: JSON.stringify(req.body),
     });

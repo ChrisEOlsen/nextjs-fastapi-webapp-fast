@@ -1,21 +1,26 @@
-# backend/app/db/schemas/{{ resource_name_snake }}.py
 from pydantic import BaseModel
 from typing import Optional
 
-class {{ resource_name_pascal }}Base(BaseModel):
-    # --- The MCP will add fields here ---
-    pass
+# Pydantic model for creating a new {{ resource_name_pascal }}
+class {{ resource_name_pascal }}Create(BaseModel):
+    {%- for field in fields %}
+    {{ field.name }}: {{ type_to_pydantic(field.type) }}
+    {%- endfor %}
 
-class {{ resource_name_pascal }}Create({{ resource_name_pascal }}Base):
-    pass
+# Pydantic model for updating a {{ resource_name_pascal }}
+# All fields are optional for partial updates
+class {{ resource_name_pascal }}Update(BaseModel):
+    {%- for field in fields %}
+    {{ field.name }}: Optional[{{ type_to_pydantic(field.type) }}] = None
+    {%- endfor %}
 
-class {{ resource_name_pascal }}Update({{ resource_name_pascal }}Base):
-    pass
-
-class {{ resource_name_pascal }}InDBBase({{ resource_name_pascal }}Base):
+# Pydantic model for reading/returning a {{ resource_name_pascal }}
+# This is the base model that includes fields present in the database
+class {{ resource_name_pascal }}(BaseModel):
     id: int
-    class Config:
-        from_attributes = True
+    {%- for field in fields %}
+    {{ field.name }}: {{ type_to_pydantic(field.type) }}
+    {%- endfor %}
 
-class {{ resource_name_pascal }}({{ resource_name_pascal }}InDBBase):
-    pass
+    class Config:
+        orm_mode = True

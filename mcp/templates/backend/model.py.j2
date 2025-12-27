@@ -1,8 +1,10 @@
-# backend/app/models/{{ resource_name_snake }}.py
-from sqlalchemy import Column, String, Integer, Text
-from .user import Base
+from sqlalchemy import Column, Integer, Text, String, Boolean, Float, Date, DateTime, Uuid
+from app.db.base_class import Base
 
 class {{ resource_name_pascal }}(Base):
     __tablename__ = "{{ resource_name_plural_snake }}"
+
     id = Column(Integer, primary_key=True, index=True)
-    # --- The MCP will add fields here ---
+    {% for field in fields -%}
+    {{ field.name }} = Column({{ type_to_sqlalchemy(field.type) }}{{ ", nullable=False" if field.required else "" }})
+    {% endfor %}
