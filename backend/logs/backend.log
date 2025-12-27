@@ -346,3 +346,16 @@
 2025-12-27 02:10:07,316 - backend - INFO - Creating database tables if they don't exist...
 2025-12-27 02:10:07,326 - backend - INFO - Database tables checked/created successfully.
 2025-12-27 02:10:07,326 - backend - INFO - 🏁 App startup complete, ready to accept requests.
+2025-12-27 02:10:41,436 - backend - INFO - HMAC Validation: Domain='template.crispychrisprivserver.org', Expected Secret (first 5 chars)='04831', Generated Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0', Received Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0'
+2025-12-27 02:10:41,568 - backend - INFO - HMAC Validation: Domain='template.crispychrisprivserver.org', Expected Secret (first 5 chars)='04831', Generated Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0', Received Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0'
+2025-12-27 02:10:42,249 - backend - INFO - HMAC Validation: Domain='template.crispychrisprivserver.org', Expected Secret (first 5 chars)='04831', Generated Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0', Received Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0'
+2025-12-27 02:11:24,862 - backend - INFO - HMAC Validation: Domain='template.crispychrisprivserver.org', Expected Secret (first 5 chars)='04831', Generated Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0', Received Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0'
+2025-12-27 02:11:25,878 - backend - INFO - HMAC Validation: Domain='template.crispychrisprivserver.org', Expected Secret (first 5 chars)='04831', Generated Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0', Received Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0'
+2025-12-27 02:11:26,380 - backend - INFO - HMAC Validation: Domain='template.crispychrisprivserver.org', Expected Secret (first 5 chars)='04831', Generated Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0', Received Sig='e78b1d1e6274dbe5ac637c2438a83dfec7ae7d1500c32f784d77840e649d10e0'
+2025-12-27 02:17:46,323 - backend - INFO - 🛑 App shutdown complete.
+2025-12-27 02:17:49,116 - backend - INFO - 🚀 Starting application...
+2025-12-27 02:17:49,117 - backend - WARNING - Fetched 'database_url' from environment variable. For production, use secrets_loader.
+2025-12-27 02:17:49,117 - backend - INFO - Creating new SQLAlchemy async engine.
+2025-12-27 02:17:49,290 - backend - INFO - Creating database tables if they don't exist...
+2025-12-27 02:17:49,294 - backend - INFO - Database tables checked/created successfully.
+2025-12-27 02:17:49,295 - backend - INFO - 🏁 App startup complete, ready to accept requests.

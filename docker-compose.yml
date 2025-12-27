@@ -42,6 +42,7 @@ services:
       - DOMAIN=${DOMAIN}
       - EXPECTED_HMAC_SECRET=${EXPECTED_HMAC_SECRET}
       - API_PREFIX=${API_PREFIX}
+      - BACKEND_URL=${BACKEND_URL}
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"

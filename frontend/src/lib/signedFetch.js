@@ -3,8 +3,7 @@ import crypto from "crypto";
 const EXPECTED_HMAC_SECRET = process.env.EXPECTED_HMAC_SECRET;
 const DOMAIN = process.env.DOMAIN;
 const API_PREFIX = process.env.API_PREFIX;
-
-console.log(`[signedFetch] Environment Variables - DOMAIN: ${DOMAIN}, HMAC_SECRET_START: ${EXPECTED_HMAC_SECRET ? EXPECTED_HMAC_SECRET.substring(0, 5) : 'undefined'}, API_PREFIX: ${API_PREFIX}`);
+const BACKEND_URL = process.env.BACKEND_URL
 
 if (!EXPECTED_HMAC_SECRET || !DOMAIN || !API_PREFIX) {
   const missing = [];
@@ -37,7 +36,7 @@ export async function signedFetch(path, req, options = {}) {
   const domain = DOMAIN;
   const signature = generateTenantSignature(domain);
 
-  const targetUrl = `http://backend${API_PREFIX}${path}`;
+  const targetUrl = `http://${BACKEND_URL}${API_PREFIX}${path}`;
 
   const headers = {
     "Content-Type": "application/json",
@@ -46,9 +45,6 @@ export async function signedFetch(path, req, options = {}) {
     ...(req.headers.cookie ? { "Cookie": req.headers.cookie } : {}), // Forward cookie header
     ...(options.headers || {}), // Merge any additional headers from options
   };
-
-  console.log(`[signedFetch] Making request to: ${targetUrl}`);
-  console.log(`[signedFetch] Outgoing Headers: ${JSON.stringify(headers)}`);
 
   return fetch(targetUrl, {
     ...options,
