@@ -458,3 +458,4 @@
 2025-12-27 23:42:38,134 - backend - INFO - Creating database tables if they don't exist...
 2025-12-27 23:42:38,140 - backend - INFO - Database tables checked/created successfully.
 2025-12-27 23:42:38,140 - backend - INFO - 🏁 App startup complete, ready to accept requests.
+2025-12-27 23:48:37,364 - backend - INFO - 🛑 App shutdown complete.
