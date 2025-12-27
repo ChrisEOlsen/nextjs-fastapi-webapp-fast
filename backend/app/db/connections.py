@@ -38,9 +38,20 @@ AsyncSessionFactory = sessionmaker(
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    FastAPI dependency that provides a SQLAlchemy AsyncSession.
+    FastAPI dependency that provides a SQLAlchemy AsyncSession with automatic
+    transaction management.
+    - Commits the transaction if the request is successful.
+    - Rolls back the transaction if an exception occurs.
+    - Always closes the session.
     """
     engine = await get_engine()
     AsyncSessionFactory.configure(bind=engine)
     async with AsyncSessionFactory() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()

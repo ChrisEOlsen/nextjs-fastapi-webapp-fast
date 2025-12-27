@@ -9,7 +9,7 @@ from alembic import context
 
 # Import your models here for 'autogenerate' support
 from app.models.user import Base
-from app.models.todo_item import Base as TodoItemBase # This ensures todo_item is registered
+# from app.models.todo_item import Base as TodoItemBase # This ensures todo_item is registered
 # --- Add any other models you create here ---
 
 load_dotenv()

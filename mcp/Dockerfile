@@ -1,29 +1,33 @@
+# Use an official Python runtime as a parent image
 FROM python:3.10-slim
 
+# 1. Install 'uv' by copying the static binary from its official image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+# Set the working directory in the container
 WORKDIR /app
 
-# First, install all dependencies as the root user
-RUN pip install uv
+# 2. Copy only the dependency definition file first to leverage Docker cache
 COPY pyproject.toml .
-RUN uv pip compile pyproject.toml -o requirements.txt
-RUN uv pip install --system --no-cache -r requirements.txt
 
-# Create a non-root user with the same UID and GID as the host
-# Also, add the user to the docker group to allow socket access
-ARG UID=1000
-ARG GID=1000
-ARG DOCKER_GID=984
-RUN groupadd --gid $GID user && \
-    groupadd --gid $DOCKER_GID docker && \
-    useradd --uid $UID --gid $GID --groups docker -m user
+# 3. Compile and install third-party dependencies from pyproject.toml
+# This step is cached and only re-runs if pyproject.toml changes.
+RUN uv pip compile pyproject.toml -o requirements.txt && \
+    uv pip install --system --no-cache -r requirements.txt
 
-# Now, copy the application code and set permissions
-COPY --chown=user:user ./app /app/app
-COPY --chown=user:user ./templates /app/templates
+# 4. Create a non-root user
+RUN useradd --create-home --shell /bin/bash appuser
 
-# Switch to the non-root user
-USER user
+# 5. Copy the application code into the container
+# This is done *after* installing dependencies to optimize caching.
+COPY ./app /app/app
+COPY ./templates /app/templates
 
-ENV PYTHONPATH=/app
+# 6. Install the local application itself. This will be fast as dependencies are already installed.
+RUN uv pip install --system --no-cache .
 
-CMD ["python", "app/server.py"]
+# 7. Switch to the non-root user
+USER appuser
+
+# The command to run the CLI application.
+ENTRYPOINT ["python", "-m", "app.main"]

@@ -3,17 +3,15 @@ name = "mcp-server"
 version = "0.1.0"
 description = "Master Control Program for code generation"
 dependencies = [
-    "fastapi",
-    "uvicorn[standard]",
     "Jinja2",
-    "python-multipart",
-    "mcp",
-    "docker",
     "python-dotenv",
-    "psycopg2-binary"
+    "typer[all]"
 ]
 requires-python = ">=3.10"
 
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app"]

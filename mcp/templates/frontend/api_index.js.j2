@@ -1,0 +1,54 @@
+
+// frontend/src/pages/api/{{ resource_name_plural_snake }}/index.js
+import { signedFetch } from "@/lib/signedFetch";
+{% if is_admin_resource %}import { isAdmin } from "@/lib/auth";{% endif %}
+
+export default async function handler(req, res) {
+  {% if is_admin_resource %}
+  if (!await isAdmin(req)) {
+      return res.status(403).json({ error: "Forbidden: Admin access required." });
+  }
+  {% endif %}
+
+  if (req.method === 'GET') {
+    return handleGet(req, res);
+  }
+
+  if (req.method === 'POST') {
+    return handlePost(req, res);
+  }
+
+  res.setHeader('Allow', ['GET', 'POST']);
+  return res.status(405).end(`Method ${req.method} Not Allowed`);
+}
+
+async function handleGet(req, res) {
+  try {
+    const backendResponse = await signedFetch("/{{ resource_name_plural_snake }}", req);
+    const data = await backendResponse.json();
+    if (!backendResponse.ok) {
+      return res.status(backendResponse.status).json({ error: data.detail || 'Failed to fetch {{ resource_name_plural_snake }} data' });
+    }
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("Error fetching {{ resource_name_plural_snake }}:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function handlePost(req, res) {
+  try {
+    const backendResponse = await signedFetch("/{{ resource_name_plural_snake }}", req, {
+      method: 'POST',
+      body: JSON.stringify(req.body),
+    });
+    const data = await backendResponse.json();
+    if (!backendResponse.ok) {
+      return res.status(backendResponse.status).json({ error: data.detail || 'Failed to create {{ resource_name_snake }}' });
+    }
+    return res.status(201).json(data);
+  } catch (err) {
+    console.error("Error creating {{ resource_name_snake }}:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
