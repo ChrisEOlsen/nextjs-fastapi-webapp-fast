@@ -71,7 +71,7 @@ def create_resource(
         "backend/crud.py.j2": os.path.join(base_paths["backend"], f"crud/crud_{ctx["resource_name_snake"]}.py"),
         "backend/endpoint.py.j2": os.path.join(base_paths["backend"], f"api/v1/endpoints/{ctx["resource_name_plural_snake"]}.py"),
         "frontend/api_index.js.j2": os.path.join(base_paths["frontend"], f"pages/api/{ctx["resource_name_plural_snake"]}/index.js"),
-        "frontend/api_id.js.j2": os.path.join(base_paths["frontend"], f"pages/api/{ctx["resource_name_plural_snake"]}/[{ctx["resource_name_snake"]}_id].js"),
+        "frontend/api_id.js.j2": os.path.join(base_paths["frontend"], f"pages/api/{ctx["resource_name_plural_snake"]}/[{ctx["resource_name_snake"]}Id].js"),
     }
     
     generated_list = []
