@@ -1,0 +1,116 @@
+
+  const [items, setItems] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // State for editing
+  const [editingItemId, setEditingItemId] = useState(null);
+  
+  // Dynamically create state for each field for editing
+  {% for field in fields -%}
+  const [editing{{ field.name | capitalize }}, setEditing{{ field.name | capitalize }}] = useState('');
+  {% endfor %}
+
+  // Dynamically create state for each field for new item creation
+  {% for field in fields -%}
+  const [new{{ field.name | capitalize }}, setNew{{ field.name | capitalize }}] = useState('');
+  {% endfor %}
+
+  const API_ENDPOINT = `/api/{{ resource_name_plural_snake }}`;
+
+  // --- Data Fetching and Mutation ---
+  const fetchItems = async () => {
+    try {
+      const res = await fetch(API_ENDPOINT);
+      if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+      const data = await res.json();
+      setItems(data);
+    } catch (err) {
+      setError(`Could not load {{ resource_name_plural_snake }}.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const handleCreate = async (e) => {
+    if (e) e.preventDefault();
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          {% for field in fields -%}
+          {{ field.name }}: new{{ field.name | capitalize }}{{ ',' if not loop.last else '' }}
+          {% endfor %}
+        }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to create item.');
+      }
+      const createdItem = await res.json();
+      setItems([...items, createdItem]);
+      {% for field in fields -%}
+      setNew{{ field.name | capitalize }}('');
+      {% endfor %}
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDelete = async (itemId) => {
+    try {
+      const res = await fetch(`${API_ENDPOINT}/${itemId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to delete item.');
+      }
+      setItems(items.filter((item) => item.id !== itemId));
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const startEditing = (item) => {
+    setEditingItemId(item.id);
+    {% for field in fields -%}
+    setEditing{{ field.name | capitalize }}(item.{{ field.name }});
+    {% endfor %}
+  };
+
+  const cancelEditing = () => {
+    setEditingItemId(null);
+    {% for field in fields -%}
+    setEditing{{ field.name | capitalize }}('');
+    {% endfor %}
+  };
+
+  const handleUpdate = async (itemId) => {
+    try {
+      const res = await fetch(`${API_ENDPOINT}/${itemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          {% for field in fields -%}
+          {{ field.name }}: editing{{ field.name | capitalize }}{{ ',' if not loop.last else '' }}
+          {% endfor %}
+        }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to update item.');
+      }
+      const updatedItem = await res.json();
+      setItems(items.map((item) => (item.id === itemId ? updatedItem : item)));
+      cancelEditing();
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    }
+  };

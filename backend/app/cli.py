@@ -2,19 +2,19 @@ import os
 import subprocess
 import typer
 from jinja2 import Environment, FileSystemLoader
-from typing import List, Literal
+from typing import List
 from typing_extensions import Annotated
+import re
 
 # --- Typer App Initialization ---
 app = typer.Typer(help="Master Control Program for project scaffolding and management.")
 
 # --- Configuration ---
-# The script runs from within the /workspace/backend directory
 TEMPLATES_DIR = "/workspace/backend/app/templates"
 WORKSPACE_DIR = "/workspace"
 templates_env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
 
-# --- Helper Functions (omitted for brevity, same as before) ---
+# --- Helper Functions ---
 def to_pascal_case(snake_case: str) -> str: return "".join(word.capitalize() for word in snake_case.split('_'))
 def to_plural(snake_case: str) -> str:
     if snake_case.endswith('y'): return snake_case[:-1] + 'ies'
@@ -47,7 +47,7 @@ def create_resource(
     fields: Annotated[List[str], typer.Argument(help="List of field definitions in 'name:type:required' format.")]
 ):
     """
-    Scaffolds a new resource: models, schemas, CRUD, endpoints, and frontend API handlers.
+    Scaffolds the data layer: backend models, schemas, CRUD, endpoints, and frontend API handlers.
     """
     typer.echo(f"Creating resource: {resource_name}")
     parsed_fields = [Field(f) for f in fields]
@@ -66,12 +66,12 @@ def create_resource(
     }
 
     files_to_generate = {
-        "backend/model.py.j2": os.path.join(base_paths["backend"], f"models/{ctx['resource_name_snake']}.py"),
-        "backend/schema.py.j2": os.path.join(base_paths["backend"], f"db/schemas/{ctx['resource_name_snake']}.py"),
-        "backend/crud.py.j2": os.path.join(base_paths["backend"], f"crud/crud_{ctx['resource_name_snake']}.py"),
-        "backend/endpoint.py.j2": os.path.join(base_paths["backend"], f"api/v1/endpoints/{ctx['resource_name_plural_snake']}.py"),
-        "frontend/api_index.js.j2": os.path.join(base_paths["frontend"], f"pages/api/{ctx['resource_name_plural_snake']}/index.js"),
-        "frontend/api_id.js.j2": os.path.join(base_paths["frontend"], f"pages/api/{ctx['resource_name_plural_snake']}/[{ctx['resource_name_snake']}_id].js"),
+        "backend/model.py.j2": os.path.join(base_paths["backend"], f"models/{ctx["resource_name_snake"]}.py"),
+        "backend/schema.py.j2": os.path.join(base_paths["backend"], f"db/schemas/{ctx["resource_name_snake"]}.py"),
+        "backend/crud.py.j2": os.path.join(base_paths["backend"], f"crud/crud_{ctx["resource_name_snake"]}.py"),
+        "backend/endpoint.py.j2": os.path.join(base_paths["backend"], f"api/v1/endpoints/{ctx["resource_name_plural_snake"]}.py"),
+        "frontend/api_index.js.j2": os.path.join(base_paths["frontend"], f"pages/api/{ctx["resource_name_plural_snake"]}/index.js"),
+        "frontend/api_id.js.j2": os.path.join(base_paths["frontend"], f"pages/api/{ctx["resource_name_plural_snake"]}/[{ctx["resource_name_snake"]}_id].js"),
     }
     
     generated_list = []
@@ -89,7 +89,7 @@ def create_resource(
     routers_file_path = os.path.join(base_paths["backend"], "api/v1/routers.py")
     with open(routers_file_path, "r+") as f:
         content = f.read()
-        plural_snake = ctx['resource_name_plural_snake']
+        plural_snake = ctx["resource_name_plural_snake"]
         new_import = f"from app.api.v1.endpoints import {plural_snake}"
         if new_import not in content:
             # Add new import alphabetically
@@ -113,10 +113,134 @@ def create_resource(
     # --- Modify models/__init__.py for Alembic autodiscovery ---
     models_init_path = os.path.join(base_paths["backend"], "models/__init__.py")
     with open(models_init_path, "a") as f:
-        f.write(f"\nfrom .{ctx['resource_name_snake']} import {ctx['resource_name_pascal']}")
+        f.write(f"\nfrom .{ctx["resource_name_snake"]} import {ctx["resource_name_pascal"]}")
     typer.echo("Updated models package for autodiscovery.")
     
     typer.secho(f"Successfully created resource '{resource_name}'.", fg=typer.colors.GREEN)
+
+@app.command("add-middleware-route")
+def add_middleware_route(
+    route_path: Annotated[str, typer.Argument(help="The path to add (e.g., '/api/my_data').")],
+    route_type: Annotated[Literal["auth_required", "admin"], typer.Argument(help="The type of route protection ('auth_required' or 'admin').")]
+):
+    """
+    Adds a new route path to the AUTH_REQUIRED_ROUTES or ADMIN_ROUTES array in frontend/src/middleware.js.
+    """
+    middleware_file_path = os.path.join(WORKSPACE_DIR, "frontend/src/middleware.js")
+    target_array = "AUTH_REQUIRED_ROUTES" if route_type == "auth_required" else "ADMIN_ROUTES"
+    
+    try:
+        with open(middleware_file_path, "r+") as f:
+            lines = f.readlines()
+            # Find the line where the target array is defined
+            for i, line in enumerate(lines):
+                if f"const {target_array} = [" in line:
+                    # Find the closing bracket of the array
+                    for j in range(i, len(lines)):
+                        if "]" in lines[j]:
+                            # Insert the new route before the closing bracket
+                            lines.insert(j, f'  "{route_path}",\n')
+                            break
+                    else:
+                        raise ValueError(f"Could not find closing bracket for {target_array}")
+                    break
+            else:
+                raise ValueError(f"Could not find array definition for {target_array}")
+
+            f.seek(0)
+            f.writelines(lines)
+            f.truncate()
+        typer.secho(f"Added route '{route_path}' to {target_array}.", fg=typer.colors.GREEN)
+    except Exception as e:
+        typer.echo(f"Error updating middleware file: {e}", err=True)
+        raise typer.Exit(code=1)
+
+@app.command("create-frontend-page")
+def create_frontend_page(
+    page_name: Annotated[str, typer.Argument(help="The name for the page and its file (e.g., 'poster-board').")]
+):
+    """
+    Creates a new, minimal Next.js frontend page.
+    """
+    typer.echo(f"Creating frontend page: {page_name}")
+    ctx = {"page_name_pascal": to_pascal_case(page_name)}
+    template = templates_env.get_template("frontend/page.js.j2")
+    rendered_content = template.render(ctx)
+    output_path = os.path.join(WORKSPACE_DIR, "frontend/src/pages", f"{page_name}.js")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w") as f: f.write(rendered_content)
+    typer.secho(f"Successfully created frontend page at frontend/src/pages/{page_name}.js", fg=typer.colors.GREEN)
+
+@app.command("create-frontend-component")
+def create_frontend_component(
+    component_name: Annotated[str, typer.Argument(help="PascalCase name for the component (e.g., 'UserProfile').")],
+    path: Annotated[str, typer.Argument(help="Relative path from frontend/src/components (e.g., 'users').")] = ""
+):
+    """
+    Creates a new, minimal React frontend component.
+    """
+    typer.echo(f"Creating frontend component: {component_name}")
+    
+    ctx = {"component_name": component_name}
+    template = templates_env.get_template("frontend/component.js.j2")
+    rendered_content = template.render(ctx)
+
+    output_dir = os.path.join(WORKSPACE_DIR, "frontend/src/components", path)
+    output_path = os.path.join(output_dir, f"{component_name}.js")
+    
+    os.makedirs(output_dir, exist_ok=True)
+    with open(output_path, "w") as f:
+        f.write(rendered_content)
+
+    relative_path = os.path.join("frontend/src/components", path, f"{component_name}.js")
+    typer.secho(f"Successfully created component at {relative_path}", fg=typer.colors.GREEN)
+
+@app.command("create-api-client")
+def create_api_client(
+    file_path: Annotated[str, typer.Argument(help="The path to the component or page file relative to `frontend/src`.")],
+    resource_name: Annotated[str, typer.Argument(help="The singular snake_case name of the resource to use (e.g., 'post_item').")],
+    fields: Annotated[List[str], typer.Argument(help="List of the resource's field definitions in 'name:type:required' format.")]
+):
+    """
+    Injects API client hooks and handlers into a frontend file.
+    """
+    typer.echo(f"Injecting API client for '{resource_name}' into {file_path}")
+    full_path = os.path.join(WORKSPACE_DIR, "frontend/src", file_path)
+
+    if not os.path.exists(full_path):
+        typer.echo(f"Error: File not found at {full_path}", err=True)
+        raise typer.Exit(code=1)
+
+    parsed_fields = [Field(f) for f in fields]
+    ctx = {
+        "resource_name_snake": resource_name,
+        "resource_name_plural_snake": to_plural(resource_name),
+        "fields": parsed_fields,
+    }
+
+    template = templates_env.get_template("frontend/api_client.js.j2")
+    api_client_code = template.render(ctx)
+
+    with open(full_path, "r+") as f:
+        content = f.read()
+        # Find the function signature line to inject the code
+        match = re.search(r"export default function \w+\(.*\) {", content)
+        if not match:
+            typer.echo(f"Error: Could not find a default exported function component in {file_path}.", err=True)
+            raise typer.Exit(code=1)
+        
+        injection_point = match.end()
+        new_content = content[:injection_point] + "\n" + api_client_code + content[injection_point:]
+        
+        # Also add useState and useEffect to the react import
+        new_content = re.sub(r"import React from 'react';", "import React, { useState, useEffect } from 'react';", new_content)
+
+        f.seek(0)
+        f.write(new_content)
+        f.truncate()
+
+    typer.secho(f"Successfully injected API client code into {file_path}", fg=typer.colors.GREEN)
+
 
 @app.command("apply-migrations")
 def apply_migrations(
