@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from app.middleware import validate_tenant_middleware
 from app.api.v1.routers import api_router
 from app.db.connections import get_engine
-from app.models.user import Base
+from app.db.base_class import Base
 
 
 # Init lifespan of FastAPI application
