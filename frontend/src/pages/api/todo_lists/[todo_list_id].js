@@ -1,15 +1,15 @@
-// frontend/src/pages/api/todo_lists/[todo_listId].js
+// frontend/src/pages/api/todo_lists/[todo_list_id].js
 import { signedFetch } from "@/lib/signedFetch";
 
 export default async function handler(req, res) {
-  const { todo_listId } = req.query;
+  const { todo_list_id } = req.query;
 
   if (req.method === 'PUT') {
-    return handlePut(req, res, todo_listId);
+    return handlePut(req, res, todo_list_id);
   }
 
   if (req.method === 'DELETE') {
-    return handleDelete(req, res, todo_listId);
+    return handleDelete(req, res, todo_list_id);
   }
 
   res.setHeader('Allow', ['PUT', 'DELETE']);

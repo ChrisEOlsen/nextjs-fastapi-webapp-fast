@@ -1,24 +1,24 @@
-// frontend/src/pages/api/todo_items/[todo_itemId].js
+// frontend/src/pages/api/todo_items/[todo_item_id].js
 import { signedFetch } from "@/lib/signedFetch";
 
 export default async function handler(req, res) {
-  const { todo_itemId } = req.query;
+  const { todo_item_id } = req.query;
 
   if (req.method === 'PUT') {
-    return handlePut(req, res, todo_itemId);
+    return handlePut(req, res, todo_item_id);
   }
 
   if (req.method === 'DELETE') {
-    return handleDelete(req, res, todo_itemId);
+    return handleDelete(req, res, todo_item_id);
   }
 
   res.setHeader('Allow', ['PUT', 'DELETE']);
   return res.status(405).end(`Method ${req.method} Not Allowed`);
 }
 
-async function handlePut(req, res, todo_itemId) {
+async function handlePut(req, res, todo_item_id) {
   try {
-    const backendResponse = await signedFetch(`/todo_items/${ todo_itemId }`, req, {
+    const backendResponse = await signedFetch(`/todo_items/${ todo_item_id }`, req, {
       method: 'PUT',
       body: JSON.stringify(req.body),
     });
@@ -28,14 +28,14 @@ async function handlePut(req, res, todo_itemId) {
     }
     return res.status(200).json(data);
   } catch (err) {
-    console.error(`Error updating todo_item ${ todo_itemId }}:`, err);
+    console.error(`Error updating todo_item ${ todo_item_id }}:`, err);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
-async function handleDelete(req, res, todo_itemId) {
+async function handleDelete(req, res, todo_item_id) {
   try {
-    const backendResponse = await signedFetch(`/todo_items/${ todo_itemId }`, req, {
+    const backendResponse = await signedFetch(`/todo_items/${ todo_item_id }`, req, {
       method: 'DELETE',
     });
 
@@ -52,7 +52,7 @@ async function handleDelete(req, res, todo_itemId) {
     return res.status(200).json(data);
 
   } catch (err) {
-    console.error(`Error deleting todo_item ${ todo_itemId }}:`, err);
+    console.error(`Error deleting todo_item ${ todo_item_id }}:`, err);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }

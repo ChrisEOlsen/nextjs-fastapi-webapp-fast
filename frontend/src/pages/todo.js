@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiPlus, FiTrash2, FiEdit3, FiCheck, FiX, FiCheckSquare,
@@ -11,9 +11,12 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-const TodoListCard = ({ list, todos, onAddTodo, onEditTodo, onDeleteTodo, onToggleComplete, onDeleteList }) => {
+const TodoListCard = ({ list, todos, onAddTodo, onUpdateTodo, onDeleteTodo, onToggleComplete, onDeleteList }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newTodoTitle, setNewTodoTitle] = useState('');
+  const [editingTodoId, setEditingTodoId] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const editInputRef = useRef(null);
 
   const handleAddSubmit = (e) => {
     e.preventDefault();
@@ -22,6 +25,38 @@ const TodoListCard = ({ list, todos, onAddTodo, onEditTodo, onDeleteTodo, onTogg
     setNewTodoTitle('');
     setIsAdding(false);
   };
+
+  const startEditing = (todo) => {
+    setEditingTodoId(todo.id);
+    setEditTitle(todo.title);
+  };
+
+  const cancelEditing = () => {
+    setEditingTodoId(null);
+    setEditTitle('');
+  };
+
+  const saveEditing = (todo) => {
+    if (editTitle.trim() !== '' && editTitle !== todo.title) {
+        onUpdateTodo({ ...todo, title: editTitle });
+    }
+    setEditingTodoId(null);
+  };
+
+  const handleEditKeyDown = (e, todo) => {
+      if (e.key === 'Enter') {
+          saveEditing(todo);
+      } else if (e.key === 'Escape') {
+          cancelEditing();
+      }
+  };
+
+  useEffect(() => {
+      if (editingTodoId && editInputRef.current) {
+          editInputRef.current.focus();
+      }
+  }, [editingTodoId]);
+
 
   return (
     <motion.div
@@ -82,27 +117,43 @@ const TodoListCard = ({ list, todos, onAddTodo, onEditTodo, onDeleteTodo, onTogg
                 </button>
 
                 <div className="flex-1 min-w-0">
-                   <p className={cn(
-                    "text-sm leading-tight transition-all break-words",
-                    todo.completed ? "text-zinc-500 line-through" : "text-zinc-200"
-                  )}>
-                    {todo.title}
-                  </p>
+                    {editingTodoId === todo.id ? (
+                        <input
+                            ref={editInputRef}
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            onBlur={() => saveEditing(todo)}
+                            onKeyDown={(e) => handleEditKeyDown(e, todo)}
+                            className="w-full bg-zinc-950 text-sm text-zinc-200 border border-indigo-500/50 rounded px-1 py-0.5 focus:outline-none"
+                        />
+                    ) : (
+                        <p className={cn(
+                            "text-sm leading-tight transition-all break-words",
+                            todo.completed ? "text-zinc-500 line-through" : "text-zinc-200"
+                        )}>
+                            {todo.title}
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <button
-                    onClick={() => onEditTodo(todo)}
-                    className="text-zinc-500 hover:text-indigo-400 p-0.5"
-                  >
-                    <FiEdit3 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => onDeleteTodo(todo.id)}
-                    className="text-zinc-500 hover:text-red-400 p-0.5"
-                  >
-                    <FiTrash2 className="w-3.5 h-3.5" />
-                  </button>
+                    {editingTodoId !== todo.id && (
+                       <>
+                           <button
+                            onClick={() => startEditing(todo)}
+                            className="text-zinc-500 hover:text-indigo-400 p-0.5"
+                          >
+                            <FiEdit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => onDeleteTodo(todo.id)}
+                            className="text-zinc-500 hover:text-red-400 p-0.5"
+                          >
+                            <FiTrash2 className="w-3.5 h-3.5" />
+                          </button>
+                       </>
+                    )}
                 </div>
               </motion.div>
             ))}
@@ -289,11 +340,22 @@ const TodoPage = () => {
      }
   };
   
-  // Note: For simplicity, edit is not implemented in this card view yet beyond toggle, 
-  // but the prop exists for future expansion
-  const handleEditTodo = (todo) => {
-    console.log("Edit requested for", todo);
+  const handleUpdateTodo = async (todo) => {
+    // Optimistic update
+    setTodoItems(prev => prev.map(t => t.id === todo.id ? todo : t));
+
+    try {
+      await fetch(`/api/todo_items/${todo.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(todo)
+      });
+    } catch (e) {
+      console.error(e);
+      // Ideally revert logic would require fetching fresh state or keeping previous state
+    }
   };
+
 
   const handleCreateList = async (title) => {
     try {
@@ -319,12 +381,6 @@ const TodoPage = () => {
     setTodoItems(prev => prev.filter(t => t.list_id !== id));
 
     try {
-      // Backend: DELETE /api/todo_lists/{id}
-      // Note: You might need to implement this endpoint in backend if not using standard crud 
-      // or ensure cascading deletes are set up in DB.
-      // Assuming standard CRUD endpoint exists from create_resource or needs to be added.
-      // If create_resource made it, it likely exists.
-      // Wait, create_resource makes: get, get_multi, create, update, delete. Yes.
       await fetch(`/api/todo_lists/${id}`, { method: 'DELETE' });
     } catch (e) {
       console.error(e);
@@ -370,7 +426,7 @@ const TodoPage = () => {
             onAddTodo={handleAddTodo}
             onToggleComplete={handleToggleComplete}
             onDeleteTodo={handleDeleteTodo}
-            onEditTodo={handleEditTodo}
+            onUpdateTodo={handleUpdateTodo}
             onDeleteList={() => {}} // Cannot delete inbox
           />
 
@@ -383,7 +439,7 @@ const TodoPage = () => {
               onAddTodo={handleAddTodo}
               onToggleComplete={handleToggleComplete}
               onDeleteTodo={handleDeleteTodo}
-              onEditTodo={handleEditTodo}
+              onUpdateTodo={handleUpdateTodo}
               onDeleteList={handleDeleteList}
             />
           ))}
