@@ -1,15 +1,15 @@
-// frontend/src/pages/api/{{ resource_name_plural_snake }}/[{{ resource_name_snake }}Id].js
+// frontend/src/pages/api/{{ resource_name_plural_snake }}/[{{ resource_name_snake }}_id].js
 import { signedFetch } from "@/lib/signedFetch";
 
 export default async function handler(req, res) {
-  const { {{ resource_name_snake }}Id } = req.query;
+  const { {{ resource_name_snake }}_id } = req.query;
 
   if (req.method === 'PUT') {
-    return handlePut(req, res, {{ resource_name_snake }}Id);
+    return handlePut(req, res, {{ resource_name_snake }}_id);
   }
 
   if (req.method === 'DELETE') {
-    return handleDelete(req, res, {{ resource_name_snake }}Id);
+    return handleDelete(req, res, {{ resource_name_snake }}_id);
   }
 
   res.setHeader('Allow', ['PUT', 'DELETE']);
