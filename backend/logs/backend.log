@@ -224,3 +224,17 @@
 2025-12-28 23:49:47,973 - backend - INFO - 🏁 App startup complete, ready to accept requests.
 2025-12-28 23:49:47,973 - uvicorn - INFO - Application startup complete.
 2025-12-28 23:50:02,612 - uvicorn.access - INFO - 172.19.0.15:55802 - "GET /api/v1/messages/ HTTP/1.1" 200
+2025-12-28 23:57:54,243 - uvicorn - INFO - Shutting down
+2025-12-28 23:57:54,344 - uvicorn - INFO - Waiting for application shutdown.
+2025-12-28 23:57:54,345 - backend - INFO - 🛑 App shutdown complete.
+2025-12-28 23:57:54,345 - uvicorn - INFO - Application shutdown complete.
+2025-12-28 23:57:54,346 - uvicorn - INFO - Finished server process [89]
+2025-12-28 23:57:56,054 - uvicorn - INFO - Started server process [94]
+2025-12-28 23:57:56,055 - uvicorn - INFO - Waiting for application startup.
+2025-12-28 23:57:56,055 - backend - INFO - 🚀 Starting application...
+2025-12-28 23:57:56,055 - backend - WARNING - Fetched 'database_url' from environment variable. For production, use secrets_loader.
+2025-12-28 23:57:56,055 - backend - INFO - Creating new SQLAlchemy async engine.
+2025-12-28 23:57:56,199 - backend - INFO - Creating database tables if they don't exist...
+2025-12-28 23:57:56,203 - backend - INFO - Database tables checked/created successfully.
+2025-12-28 23:57:56,204 - backend - INFO - 🏁 App startup complete, ready to accept requests.
+2025-12-28 23:57:56,204 - uvicorn - INFO - Application startup complete.

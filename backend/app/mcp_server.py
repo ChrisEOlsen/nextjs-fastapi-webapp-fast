@@ -125,7 +125,133 @@ def create_resource(resource_name: str, fields: List[str]):
             if new_model_import not in lines:
                 f.write(f"\n{new_model_import}")
 
+    # --- Log Feature to Registry ---
+    import json
+    import time
+    registry_path = os.path.join(WORKSPACE_DIR, ".gemini", "features.json")
+    os.makedirs(os.path.dirname(registry_path), exist_ok=True)
+    
+    feature_entry = {
+        "name": resource_name,
+        "type": "resource",
+        "timestamp": time.time(),
+        "files": generated_list
+    }
+    
+    current_registry = []
+    if os.path.exists(registry_path):
+        try:
+            with open(registry_path, "r") as f:
+                current_registry = json.load(f)
+        except: pass
+    
+    current_registry.append(feature_entry)
+    with open(registry_path, "w") as f:
+        json.dump(current_registry, f, indent=2)
+
     return f"Created resource {resource_name}. Generated {len(generated_list)} files."
+
+@mcp.tool()
+def destroy_resource(resource_name: str):
+    """
+    Completely removes a resource: deletes files, cleans imports, and runs migrations to drop the table.
+    WARNING: This is destructive and will delete data associated with the resource.
+    """
+    r_snake = resource_name
+    r_pascal = to_pascal_case(resource_name)
+    r_plural = to_plural(resource_name)
+
+    base_paths = {
+        "backend": os.path.join(WORKSPACE_DIR, "backend/app"),
+        "frontend": os.path.join(WORKSPACE_DIR, "frontend/src")
+    }
+
+    # 1. Clean Imports (CRITICAL: Do this before deleting files to avoid crashes during migration)
+    
+    # Models Init
+    models_init_path = os.path.join(base_paths["backend"], "models/__init__.py")
+    if os.path.exists(models_init_path):
+        with open(models_init_path, "r") as f:
+            lines = f.readlines()
+        
+        # Filter out the specific import line
+        target_import = f"from .{r_snake} import"
+        new_lines = [line for line in lines if target_import not in line]
+        
+        if len(lines) != len(new_lines):
+            with open(models_init_path, "w") as f:
+                f.writelines(new_lines)
+
+    # Router
+    routers_file_path = os.path.join(base_paths["backend"], "api/v1/routers.py")
+    if os.path.exists(routers_file_path):
+        with open(routers_file_path, "r") as f:
+            lines = f.readlines()
+            
+        target_import = f"from app.api.v1.endpoints import {r_plural}"
+        target_include = f"api_router.include_router({r_plural}.router)"
+        
+        new_lines = [line for line in lines if target_import not in line and target_include not in line]
+        
+        if len(lines) != len(new_lines):
+            with open(routers_file_path, "w") as f:
+                f.writelines(new_lines)
+
+    # 2. Delete Files
+    files_to_remove = [
+        os.path.join(base_paths["backend"], f"models/{r_snake}.py"),
+        os.path.join(base_paths["backend"], f"db/schemas/{r_snake}.py"),
+        os.path.join(base_paths["backend"], f"crud/crud_{r_snake}.py"),
+        os.path.join(base_paths["backend"], f"api/v1/endpoints/{r_plural}.py"),
+        os.path.join(base_paths["frontend"], f"pages/api/{r_plural}/index.js"),
+        os.path.join(base_paths["frontend"], f"pages/api/{r_plural}/[{r_snake}_id].js"),
+    ]
+
+    deleted_count = 0
+    for file_path in files_to_remove:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            deleted_count += 1
+            
+    # Try to remove the frontend api folder if empty
+    frontend_api_folder = os.path.join(base_paths["frontend"], f"pages/api/{r_plural}")
+    try:
+        os.rmdir(frontend_api_folder)
+    except:
+        pass # Not empty or doesn't exist
+
+    # 3. Database Migration (Drop Table)
+    # Because we removed the model file and the import from models/__init__.py,
+    # Alembic will see the table is missing from metadata and generate a drop_table.
+    try:
+        subprocess.run(
+            ["alembic", "revision", "--autogenerate", "-m", f"Destroy {resource_name}"],
+            check=True, cwd=os.path.join(WORKSPACE_DIR, "backend"),
+            capture_output=True
+        )
+        subprocess.run(
+            ["alembic", "upgrade", "head"],
+            check=True, cwd=os.path.join(WORKSPACE_DIR, "backend"),
+            capture_output=True
+        )
+    except subprocess.CalledProcessError as e:
+        return f"Partial success: Files deleted, but DB migration failed: {e.stderr}"
+
+    # 4. Update Registry
+    registry_path = os.path.join(WORKSPACE_DIR, ".gemini", "features.json")
+    if os.path.exists(registry_path):
+        try:
+            with open(registry_path, "r") as f:
+                registry = json.load(f)
+            
+            # Filter out the destroyed resource
+            registry = [entry for entry in registry if entry.get("name") != resource_name]
+            
+            with open(registry_path, "w") as f:
+                json.dump(registry, f, indent=2)
+        except: pass
+
+    return f"Successfully destroyed resource '{resource_name}'. Deleted {deleted_count} files and dropped database table."
 
 @mcp.tool()
 def create_frontend_page(page_name: str):
