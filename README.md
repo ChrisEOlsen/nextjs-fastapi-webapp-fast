@@ -39,7 +39,7 @@ A modern, production-ready full-stack template featuring a **FastAPI** backend a
 1.  **Clone the repository:**
 
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/ChrisEOlsen/mcp-fullstack-template.git
     cd mcp-fullstack-template
     ```
 
