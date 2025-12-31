@@ -24,5 +24,18 @@
       "/workspace/frontend/src/pages/api/logger_entries/index.js",
       "/workspace/frontend/src/pages/api/logger_entries/[logger_entry_id].js"
     ]
+  },
+  {
+    "name": "note_item",
+    "type": "resource",
+    "timestamp": 1767153334.3180537,
+    "files": [
+      "/workspace/backend/app/models/note_item.py",
+      "/workspace/backend/app/db/schemas/note_item.py",
+      "/workspace/backend/app/crud/crud_note_item.py",
+      "/workspace/backend/app/api/v1/endpoints/note_items.py",
+      "/workspace/frontend/src/pages/api/note_items/index.js",
+      "/workspace/frontend/src/pages/api/note_items/[note_item_id].js"
+    ]
   }
 ]

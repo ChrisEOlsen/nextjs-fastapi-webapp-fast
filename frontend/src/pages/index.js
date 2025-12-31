@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { FiCheckSquare, FiCalendar, FiArrowRight, FiHash } from 'react-icons/fi';
+import { FiCheckSquare, FiCalendar, FiArrowRight, FiHash, FiFileText } from 'react-icons/fi';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -57,7 +57,7 @@ export default function Home() {
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -97,6 +97,20 @@ export default function Home() {
               description="Track anything with custom categories and flexible data columns. Perfect for habits, workouts, or daily logs."
               icon={FiHash}
               colorClass="bg-rose-500"
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <AppCard
+              href="/notes"
+              title="Notes"
+              description="Capture your thoughts with a hierarchical file system. Organize your notes into folders and stay focused."
+              icon={FiFileText}
+              colorClass="bg-amber-500"
             />
           </motion.div>
         </div>

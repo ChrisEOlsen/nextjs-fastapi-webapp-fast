@@ -6,3 +6,4 @@ from .vision_goal import VisionGoal
 from .vision_subgoal import VisionSubgoal
 from .logger_category import LoggerCategory
 from .logger_entry import LoggerEntry
+from .note_item import NoteItem

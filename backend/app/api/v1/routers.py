@@ -1,6 +1,7 @@
 from app.api.v1.endpoints import logger_categories
 from app.api.v1.endpoints import logger_entries
 from app.api.v1.endpoints import messages
+from app.api.v1.endpoints import note_items
 from app.api.v1.endpoints import todo_items
 from app.api.v1.endpoints import todo_lists
 from app.api.v1.endpoints import vision_goals
@@ -15,3 +16,4 @@ api_router.include_router(vision_goals.router)
 api_router.include_router(vision_subgoals.router)
 api_router.include_router(logger_categories.router)
 api_router.include_router(logger_entries.router)
+api_router.include_router(note_items.router)
